@@ -7,12 +7,13 @@ from diffusers import UNet2DConditionModel, PNDMScheduler, LMSDiscreteScheduler
 from diffusers.schedulers.scheduling_ddim import DDIMScheduler
 from transformers import CLIPTextModel, CLIPTokenizer
 from tqdm.auto import tqdm
+import os
 
 # login your HuggingFace account using:
 # huggingface-cli login --token $HUGGINGFACE_TOKEN
 
 
-class ImageToImageDiffuser:
+class ImageToImageDiffuser():
     '''
     Diffuser class for text-guided image-to-image generation using Stable Diffusion
 
@@ -109,7 +110,7 @@ class ImageToImageDiffuser:
         img_arr = torch.from_numpy(img_arr).float().permute(0, 3, 1, 2)  # NHWC -> NCHW
         img_arr = 2.0 * img_arr - 1.0
 
-        # encode images into latents
+        # encode images into latents and allow using the mean and sample for inference
         if use_latent_mean:
             latent_samples = self.model.encode(img_arr.to(self.device)).latent_dist.mean
         else:
@@ -225,19 +226,30 @@ def main():
     scheduler = DDIMScheduler(beta_start=0.00085, beta_end=0.012,
                               beta_schedule='scaled_linear', num_train_timesteps=1000)
 
-    diffuser = ImageToImageDiffuser(scheduler=scheduler, model_name='CompVis/stable-diffusion-v1-4',
-                                    image_height=512, image_width=512, device=device)
+    models_available = ['runwayml/stable-diffusion-v1-5', 'stabilityai/stable-diffusion-2',
+                        'stabilityai/stable-diffusion-2-1', 'CompVis/stable-diffusion-v1-4']
 
-    images = Image.open("/content/sample_data/"
-                        "Leonardo_Diffusion_sticker_cartoon_cute_fox_white_background_Vermeer_style_12K_2.png")
-    prompt = 'a picasso style fox smiling'
+    root_dir = "/path-to-folder/images"
+    files = os.listdir(root_dir)
+    prompts = ['an oil painting in the style of Picasso' for _ in range(len(files))] # can be different for each image
+    generated_images = []
+    image_h, image_w = 512, 512
 
-    # sample images from prompt and conditioning image
-    generated_img = diffuser.prompt_to_img(prompt, [images], num_inference_steps=30, start_step=20,
-                                           use_latent_mean=True)
+    for i, file in enumerate(files):
+        image = Image.open(os.path.join(root_dir, file))
+        prompt = prompts[i]
 
-    # prepare to plot images
-    pil_images = [Image.fromarray(image) for image in generated_img]
+        # randomly choose a model
+        model_name = np.random.choice(models_available, 1)
+
+        # get an instance of the model
+        diffuser = ImageToImageDiffuser(scheduler=scheduler, model_name=model_name,
+                                        image_height=image_h, image_width=image_w, device=device)
+
+        # sample images from prompt and conditioning image
+        generated_img = diffuser.prompt_to_img(prompt, [image], num_inference_steps=30, start_step=20,
+                                               use_latent_mean=True)
+        generated_images.append(generated_img[0])
 
 
 if __name__ == '__main__':
