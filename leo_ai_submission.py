@@ -230,6 +230,7 @@ def main():
                         'stabilityai/stable-diffusion-2-1', 'CompVis/stable-diffusion-v1-4']
 
     root_dir = "/path-to-folder/images"
+    # get all file names in the folder
     files = os.listdir(root_dir)
     prompts = ['an oil painting in the style of Picasso' for _ in range(len(files))] # can be different for each image
     generated_images = []
