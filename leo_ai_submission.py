@@ -13,7 +13,7 @@ import os
 # huggingface-cli login --token $HUGGINGFACE_TOKEN
 
 
-class ImageToImageDiffuser():
+class ImageToImageDiffuser:
     '''
     Diffuser class for text-guided image-to-image generation using Stable Diffusion
 
