@@ -1,4 +1,4 @@
-# Take home submission - TX
+# HF stable diffusion image-to-image implementation
 
 This is an image-to-image latent diffusion model interface, which uses fixed CLIP tokenizer and pre-trained text encoder (CLIP ViT-L/14 by default).  
 
